@@ -24,3 +24,12 @@
 ```
 gcc main.cpp -o <название файла>
 ```
+Ожидаемый вывод этой программы:
+```
+Before duplicates removed: 9
+Found duplicate document id 3
+Found duplicate document id 4
+Found duplicate document id 5
+Found duplicate document id 7
+After duplicates removed: 5 
+```
