@@ -16,4 +16,4 @@ int ReadLineWithNumber() {
     cin >> result;
     ReadLine();
     return result;
-}
+}// в качестве заготовки кода используйте последнюю версию своей поисковой системы 
