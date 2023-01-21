@@ -1,5 +1,10 @@
 #pragma once
+
+#include <string>
+#include <vector>
 #include <deque>
+
+#include "document.h"
 #include "search_server.h"
 
 class RequestQueue {
@@ -7,44 +12,43 @@ public:
     explicit RequestQueue(const SearchServer& search_server);
 
     template <typename DocumentPredicate>
-    std::vector<Document> AddFindRequest(
-        const std::string& raw_query,
-        DocumentPredicate document_predicate);
+    std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate);
+    std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentStatus status);
+    std::vector<Document> AddFindRequest(const std::string& raw_query);
+    uint64_t GetNoResultRequests() const;
 
-    std::vector<Document> AddFindRequest(
-        const std::string& raw_query,
-        DocumentStatus status);
-
-    std::vector<Document> AddFindRequest(
-        const std::string& raw_query) {
-        return AddFindRequest(raw_query, DocumentStatus::ACTUAL);
-    }
-
-    int GetNoResultRequests() const;
 private:
-    std::deque<bool> requests_;
-    const static int min_in_day_ = 1440;
-    int current_time = 0;
+    struct QueryResult {
+        uint64_t time_query_;
+        size_t count_query_;
+        bool status_query_;
+    };
+    std::deque<QueryResult> requests_;
+    const static int sec_in_day_ = 1440;
     const SearchServer& search_server_;
+    uint64_t number_empty_answer_ = 0;
+    uint64_t time_ = 0;
 };
 
-// class RequestQueue public:
 template <typename DocumentPredicate>
-std::vector<Document> RequestQueue::AddFindRequest( const std::string& raw_query, DocumentPredicate document_predicate) {
-    auto vec_documents = search_server_.FindTopDocuments(raw_query,
-        document_predicate);
-
-    if (current_time == min_in_day_) {
+std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, 
+                                                   DocumentPredicate document_predicate) {
+    ++time_;
+    if (requests_.size() == sec_in_day_) {
+        if (number_empty_answer_ > 0 && requests_.front().status_query_ == false) {
+            --number_empty_answer_;
+        }
         requests_.pop_front();
+    }
+
+    auto documents = search_server_.FindTopDocuments(raw_query, document_predicate);
+    if (documents.size() == 0) {
+        ++number_empty_answer_;
+        requests_.push_back({ time_, requests_.size(), false });
     }
     else {
-        ++current_time;
+        requests_.push_back({ time_, requests_.size(), true });
     }
-    for (int i = min_in_day_; i < requests_.size(); ++i) {
-        requests_.pop_front();
-    }
-    if (vec_documents.empty()) {
-        requests_.push_back(false);
-    }
-    return vec_documents;
+
+    return documents;
 }
