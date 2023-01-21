@@ -11,8 +11,6 @@
 
 class LogDuration {
 public:
-    // çàìåíèì èìÿ òèïà std::chrono::steady_clock
-    // ñ ïîìîùüþ using äëÿ óäîáñòâà
     using Clock = std::chrono::steady_clock;
 
     LogDuration(const std::string& name_function, std::ostream& out) 
