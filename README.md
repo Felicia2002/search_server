@@ -34,12 +34,7 @@ gcc main.cpp -o <название файла>
 #include <string>
 #include <vector>
 using namespace std;
-void PrintDocument(const Document& document) {
-    cout << "{ "s
-         << "document_id = "s << document.id << ", "s
-         << "relevance = "s << document.relevance << ", "s
-         << "rating = "s << document.rating << " }"s << endl;
-}
+
 int main() {
     SearchServer search_server("and with"s);
     int id = 0;
